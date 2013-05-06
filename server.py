@@ -1,4 +1,5 @@
-import socket, socketserver, threading, os, sys
+import socket, threading, os, sys
+import SocketServer as socketserver
 
 class Server(socketserver.ThreadingTCPServer):
     connections = []
@@ -8,15 +9,21 @@ class ConnectionHandler(socketserver.BaseRequestHandler):
     def handle(self):
         Server.connections.append(self)
         action = self.request.recv(1024)
+        print("przed riciwem")
         if action == 'listdir':
+            print("warunekkkkkk")
             self.listfiles()
+        print(action)
+        print("po ricivie")
 
     def listfiles(self, dirpath='files'):
+        print("w lisfiles metodzie")
         files_list = [elem for elem in os.listdir(dirpath) \
-                if not elem.path.isdir()]
-        self.request.sendall(len(files_list))
+                if not os.path.isdir(elem)]
+        print ("files list: ", files_list)
+        self.request.sendall(str(len(files_list)))
         self.request.recv(1024)
-        for elem in file_list:
+        for elem in files_list:
             self.request.sendall(elem)
 
     def sendfile(self, filepath):
@@ -25,7 +32,7 @@ class ConnectionHandler(socketserver.BaseRequestHandler):
         self.request.sendall(os.path.split(filepath)[1])
         self.request.recv(1024)
         size = os.path.getsize(filepath)
-        self.request.sendall(size)
+        self.request.sendall(str(size))
         self.request.recv(1024)
         with open(filepath, 'rb') as bin_file:
             while True:
@@ -55,9 +62,11 @@ class Client:
         print(filename)
     
     def get_listfiles(self):
+        self.request.sendall('listdir')
         list_len = int(self.request.recv(1024))
+        self.request.sendall('size recieved')
         files_list = []
-        for elem in list_len:
+        for elem in xrange(list_len):
             files_list.append(self.request.recv(1024))
         return files_list
 
@@ -65,7 +74,7 @@ class Client:
 PORT = 9001 + int(sys.argv[1])
 if __name__ == '__main__':
 
-    choice = input("server [s], client[c]")
+    choice = raw_input("server [s], client[c]")
 
     if choice == 'c':
         client = Client('localhost', PORT)
@@ -76,3 +85,4 @@ if __name__ == '__main__':
         server_thread = threading.Thread(target = server.serve_forever)
         server_thread.daemon = True
         server_thread.start()
+        raw_input()
