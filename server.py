@@ -27,6 +27,7 @@ class ConnectionHandler(socketserver.BaseRequestHandler):
             self.request.recv(1024)
 
     def sendfile(self):
+        self.request.sendall("ready")
         filepath = os.path.join('files', self.request.recv(1024))
         size = os.path.getsize(filepath)
         self.request.sendall(str(size))
@@ -46,6 +47,7 @@ class Client:
 
     def recievefile(self, filename):
         self.request.sendall('sendfile')
+        self.request.recv(1024)
         self.request.sendall(filename)
         size = self.request.recv(1024)
         size = int(size)
