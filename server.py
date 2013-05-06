@@ -25,6 +25,7 @@ class ConnectionHandler(socketserver.BaseRequestHandler):
         self.request.recv(1024)
         for elem in files_list:
             self.request.sendall(elem)
+            self.request.recv(1024)
 
     def sendfile(self, filepath):
         self.request.sendall('sendfile')
@@ -68,6 +69,7 @@ class Client:
         files_list = []
         for elem in xrange(list_len):
             files_list.append(self.request.recv(1024))
+            self.request.sendall('ok')
         return files_list
 
 
@@ -79,12 +81,11 @@ if __name__ == '__main__':
     server_thread = threading.Thread(target = server.serve_forever)
     server_thread.daemon = True
     server_thread.start()
-    raw_input("WTF")
-    choice = raw_input("Wylistuj [ls]")
-
-    if choice == 'ls':
-        client = Client('192.168.0.11', PORT)
-        l = client.get_listfiles()
-        print(l)
-   
+    while True:
+        choice = raw_input("Wylistuj [ls]")
+        if choice == 'ls':
+            client = Client('192.168.0.14', PORT)
+            l = client.get_listfiles()
+            print(l)
+       
         
