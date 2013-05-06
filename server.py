@@ -74,15 +74,17 @@ class Client:
 PORT = 9001 + int(sys.argv[1])
 if __name__ == '__main__':
 
-    choice = raw_input("server [s], client[c]")
+    #choice = raw_input("server [s], client[c]")
+    server = Server(('', PORT), ConnectionHandler)
+    server_thread = threading.Thread(target = server.serve_forever)
+    server_thread.daemon = True
+    server_thread.start()
+    raw_input("WTF")
+    choice = raw_input("Wylistuj [ls]")
 
-    if choice == 'c':
-        client = Client('localhost', PORT)
+    if choice == 'ls':
+        client = Client('192.168.0.11', PORT)
         l = client.get_listfiles()
         print(l)
-    elif choice == 's':
-        server = Server(('localhost', PORT), ConnectionHandler)
-        server_thread = threading.Thread(target = server.serve_forever)
-        server_thread.daemon = True
-        server_thread.start()
-        raw_input()
+   
+        
