@@ -42,6 +42,7 @@ class ConnectionHandler(socketserver.BaseRequestHandler):
 class Client:
     
     def __init__(self, host, port):
+        self.host, self.port = host, port
         self.request = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.request.connect((host, port))
 
@@ -70,8 +71,8 @@ class Client:
             self.request.sendall('ok')
         return files_list
 
-
-PORT = 9001 + int(sys.argv[1])
+    def getinfo(self):
+        return "%s:%d" % (self.host, self.port)
 if __name__ == '__main__':
 
     #choice = raw_input("server [s], client[c]")
@@ -79,15 +80,25 @@ if __name__ == '__main__':
     server_thread = threading.Thread(target = server.serve_forever)
     server_thread.daemon = True
     server_thread.start()
-    client = Client('192.168.0.14', PORT)
+    clients = []
     while True:
-        choice = raw_input("Wylistuj [ls], pobierz plik [pp]")
+        choice = raw_input("Wylistuj [ls], pobierz plik [pp], dodaj clienta [dc]")
+        if choice == 'dc':
+            ip = raw_input('podaj ip: ')
+            port = raw_input('podaj port: ')
+            clients.append(Client(ip, port))
         if choice == 'ls':
-            l = client.get_listfiles()
+            for nr, elem in enumerate(clients):
+                print(nr, elem.getinfo())
+            nr = int(raw_input("podaj nr klienta do listowania: "))
+            l = clients[nr].get_listfiles()
             print(l)
         if choice == 'pp':
+            for nr, elem in enumerate(clients):
+                print(nr, elem.getinfo())
+            nr = int(raw_input("podaj nr klienta, by pobrac od niego plik: "))
             file_name = raw_input("Podaj dokladna nazwe pliku: ")
-            client.recievefile(file_name)
+            clients[nr].recievefile(file_name)
 
        
         
