@@ -73,6 +73,8 @@ class Client:
 
     def getinfo(self):
         return "%s:%d" % (self.host, self.port)
+
+PORT = 9001 + int(sys.argv[1])
 if __name__ == '__main__':
 
     #choice = raw_input("server [s], client[c]")
