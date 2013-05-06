@@ -9,12 +9,11 @@ class ConnectionHandler(socketserver.BaseRequestHandler):
     def handle(self):
         Server.connections.append(self)
         action = self.request.recv(1024)
-        print("przed riciwem")
         if action == 'listdir':
-            print("warunekkkkkk")
             self.listfiles()
+        elif action == 'sendfile':
+            self.sendfile()
         print(action)
-        print("po ricivie")
 
     def listfiles(self, dirpath='files'):
         print("w lisfiles metodzie")
@@ -27,11 +26,8 @@ class ConnectionHandler(socketserver.BaseRequestHandler):
             self.request.sendall(elem)
             self.request.recv(1024)
 
-    def sendfile(self, filepath):
-        self.request.sendall('sendfile')
-        self.request.recv(1024)
-        self.request.sendall(os.path.split(filepath)[1])
-        self.request.recv(1024)
+    def sendfile(self):
+        filepath = os.path.join('files', self.request.recv(1024))
         size = os.path.getsize(filepath)
         self.request.sendall(str(size))
         self.request.recv(1024)
@@ -48,9 +44,9 @@ class Client:
         self.request = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.request.connect((host, port))
 
-    def recievefile(self, dirpath='files'):
-        filename = self.request.recv(1024)
-        self.request.sendall('filename recieved')
+    def recievefile(self, filename):
+        self.request.sendall('sendfile')
+        self.request.sendall(filename)
         size = self.request.recv(1024)
         size = int(size)
         self.request.sendall('size recieved')
@@ -81,11 +77,15 @@ if __name__ == '__main__':
     server_thread = threading.Thread(target = server.serve_forever)
     server_thread.daemon = True
     server_thread.start()
+    client = Client('192.168.0.14', PORT)
     while True:
-        choice = raw_input("Wylistuj [ls]")
+        choice = raw_input("Wylistuj [ls], pobierz plik [pp]")
         if choice == 'ls':
-            client = Client('192.168.0.14', PORT)
             l = client.get_listfiles()
             print(l)
+        if choice == 'pp':
+            file_name = raw_input("Podaj dokladna nazwe pliku: ")
+            client.recievefile(file_name)
+
        
         
