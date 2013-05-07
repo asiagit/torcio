@@ -8,6 +8,7 @@ class ConnectionHandler(socketserver.BaseRequestHandler):
         if action == 'listdir':
             self.listfiles()
         elif action == 'sendfile':
+            print "akcjaaaa", action
             self.sendfile()
         print(action)
 
@@ -23,10 +24,14 @@ class ConnectionHandler(socketserver.BaseRequestHandler):
             self.request.recv(1024)
 
     def sendfile(self):
-        self.request.sendall("ready")
-        filepath = os.path.join('files', self.request.recv(1024))
+        self.request.sendall('ready')
+        file_name = self.request.recv(1024)
+        print "nazwa pliku", file_name
+        filepath = os.path.join('files', file_name)
         size = os.path.getsize(filepath)
+        print "rozmiar w sendfile przed sendem", size
         self.request.sendall(str(size))
+        print "rozmiar w sendfile po sendzie", size
         self.request.recv(1024)
         with open(filepath, 'rb') as bin_file:
             while True:
@@ -47,6 +52,7 @@ class Client:
         self.request.recv(1024)
         self.request.sendall(filename)
         size = self.request.recv(1024)
+        print size
         size = int(size)
         self.request.sendall('size recieved')
         with open(os.path.join('files', filename), 'wb+') as bin_file:
@@ -95,7 +101,7 @@ if __name__ == '__main__':
             for nr, elem in enumerate(clients):
                 print(nr, elem.getinfo())
             nr = int(raw_input("podaj nr klienta, by pobrac od niego plik: "))
-            print(clients[nr].get_listfiles())
+            #print(clients[nr].get_listfiles())
             file_name = raw_input("Podaj dokladna nazwe pliku: ")
             clients[nr].recievefile(file_name)
 
