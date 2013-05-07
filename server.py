@@ -16,7 +16,7 @@ class ConnectionHandler(socketserver.BaseRequestHandler):
         files_list = [elem for elem in os.listdir(dirpath) \
                 if not os.path.isdir(elem)]
         self.request.sendall('|'.join(files_list))
-       # self.request.recv(1024)
+        self.request.recv(1024)
 
     def sendfile(self):
         self.request.sendall('ready')
@@ -30,10 +30,11 @@ class ConnectionHandler(socketserver.BaseRequestHandler):
                 bin_string = bin_file.read(1024)
                 self.request.send(bin_string)
                 if not bin_file: break
+        self.request.recv(1024)
 
 
 class Client:
-    
+
     def __init__(self, host, port):
         self.host, self.port = host, port
         self.request = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -47,18 +48,19 @@ class Client:
         print size
         size = int(size)
         self.request.sendall('size recieved')
-        with open(os.path.join('files', filename), 'wb+') as bin_file:
+        with open(os.path.join('files', filename+'ot'), 'wb+') as bin_file:
             recv = 0
             while recv < size:
                 bin_string = self.request.recv(1024)
                 bin_file.write(bin_string)
                 recv += len(bin_string)
+        self.request.sendall("file recieved")
         print(filename)
-    
+
     def get_listfiles(self):
         self.request.sendall('listdir')
         files_list = self.request.recv(4096).split('|')
-        #self.request.sendall('ok')
+        self.request.sendall('ok')
         return files_list
 
     def getinfo(self):
@@ -92,6 +94,3 @@ if __name__ == '__main__':
             print(clients[nr].get_listfiles())
             file_name = raw_input("Podaj dokladna nazwe pliku: ")
             clients[nr].recievefile(file_name)
-
-       
-        
