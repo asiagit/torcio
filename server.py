@@ -4,32 +4,31 @@ import SocketServer as socketserver
 class ConnectionHandler(socketserver.BaseRequestHandler):
 
     def handle(self):
-        action = self.request.recv(1024)
-        if action == 'listdir':
-            self.listfiles()
-        elif action == 'sendfile':
-            print "akcjaaaa", action
-            self.sendfile()
-        print(action)
+        while True:
+            action = self.request.recv(1024)
+            if action == 'listdir':
+                self.listfiles()
+            elif action == 'sendfile':
+                print "akcjaaaa", action
+                self.sendfile()
+            print(action)
 
     def listfiles(self, dirpath='files'):
         print("w lisfiles metodzie")
         files_list = [elem for elem in os.listdir(dirpath) \
                 if not os.path.isdir(elem)]
         print ("files list: ", files_list)
-        self.request.send(str(len(files_list)))
-        self.request.recv(1024)
         self.request.sendall('|'.join(files_list))
-        self.request.recv(1024)
+       # self.request.recv(1024)
 
     def sendfile(self):
-        self.request.send('ready')
+        self.request.sendall('ready')
         file_name = self.request.recv(1024)
         print "nazwa pliku", file_name
         filepath = os.path.join('files', file_name)
         size = os.path.getsize(filepath)
         print "rozmiar w sendfile przed sendem", size
-        self.request.send(str(size))
+        self.request.sendall(str(size))
         print "rozmiar w sendfile po sendzie", size
         self.request.recv(1024)
         with open(filepath, 'rb') as bin_file:
@@ -47,13 +46,13 @@ class Client:
         self.request.connect((host, port))
 
     def recievefile(self, filename):
-        self.request.send('sendfile')
+        self.request.sendall('sendfile')
         self.request.recv(1024)
-        self.request.send(filename)
+        self.request.sendall(filename)
         size = self.request.recv(1024)
         print size
         size = int(size)
-        self.request.send('size recieved')
+        self.request.sendall('size recieved')
         with open(os.path.join('files', filename), 'wb+') as bin_file:
             recv = 0
             while recv < size:
@@ -63,10 +62,9 @@ class Client:
         print(filename)
     
     def get_listfiles(self):
-        self.request.send('listdir')
-        list_len = int(self.request.recv(1024))
-        self.request.sendall('size recieved')
-        files_list = self.request.recv(1024).split('|')
+        self.request.sendall('listdir')
+        files_list = self.request.recv(4096).split('|')
+        #self.request.sendall('ok')
         return files_list
 
     def getinfo(self):
@@ -82,7 +80,7 @@ if __name__ == '__main__':
     server_thread.start()
     clients = []
     while True:
-        choice = raw_input("Wylistuj [ls], pobierz plik [pp], dodaj clienta [dc]")
+        choice = raw_input("Wylistuj [ls], pobierz plik [pp], dodaj clienta [dc]: ")
         if choice == 'dc':
             ip = raw_input('podaj ip: ')
             port = int(raw_input('podaj port: '))
