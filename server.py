@@ -22,6 +22,7 @@ class ConnectionHandler(socketserver.BaseRequestHandler):
         for elem in files_list:
             self.request.sendall(elem)
             self.request.recv(1024)
+        self.request.sendall("done")
 
     def sendfile(self):
         self.request.sendall('ready')
@@ -71,6 +72,7 @@ class Client:
         for elem in xrange(list_len):
             files_list.append(self.request.recv(1024))
             self.request.sendall('ok')
+        self.request.recv(1024)
         return files_list
 
     def getinfo(self):
