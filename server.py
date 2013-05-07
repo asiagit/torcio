@@ -1,9 +1,6 @@
 import socket, threading, os, sys
 import SocketServer as socketserver
 
-class Server(socketserver.ThreadingTCPServer):
-    connections = []
-
 class ConnectionHandler(socketserver.BaseRequestHandler):
 
     def handle(self):
@@ -78,7 +75,7 @@ PORT = 9001 + int(sys.argv[1])
 if __name__ == '__main__':
 
     #choice = raw_input("server [s], client[c]")
-    server = Server(('', PORT), ConnectionHandler)
+    server = socketserver.ThreadingTCPServer(('', PORT), ConnectionHandler)
     server_thread = threading.Thread(target = server.serve_forever)
     server_thread.daemon = True
     server_thread.start()
@@ -89,16 +86,17 @@ if __name__ == '__main__':
             ip = raw_input('podaj ip: ')
             port = int(raw_input('podaj port: '))
             clients.append(Client(ip, port))
-        if choice == 'ls':
+        elif choice == 'ls':
             for nr, elem in enumerate(clients):
                 print(nr, elem.getinfo())
             nr = int(raw_input("podaj nr klienta do listowania: "))
             l = clients[nr].get_listfiles()
             print(l)
-        if choice == 'pp':
+        elif choice == 'pp':
             for nr, elem in enumerate(clients):
                 print(nr, elem.getinfo())
             nr = int(raw_input("podaj nr klienta, by pobrac od niego plik: "))
+            clients[nr].get_listfiles()
             file_name = raw_input("Podaj dokladna nazwe pliku: ")
             clients[nr].recievefile(file_name)
 
