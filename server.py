@@ -17,21 +17,19 @@ class ConnectionHandler(socketserver.BaseRequestHandler):
         files_list = [elem for elem in os.listdir(dirpath) \
                 if not os.path.isdir(elem)]
         print ("files list: ", files_list)
-        self.request.sendall(str(len(files_list)))
+        self.request.send(str(len(files_list)))
         self.request.recv(1024)
-        for elem in files_list:
-            self.request.sendall(elem)
-            self.request.recv(1024)
-        self.request.sendall("done")
+        self.request.sendall('|'.join(files_list))
+        self.request.recv(1024)
 
     def sendfile(self):
-        self.request.sendall('ready')
+        self.request.send('ready')
         file_name = self.request.recv(1024)
         print "nazwa pliku", file_name
         filepath = os.path.join('files', file_name)
         size = os.path.getsize(filepath)
         print "rozmiar w sendfile przed sendem", size
-        self.request.sendall(str(size))
+        self.request.send(str(size))
         print "rozmiar w sendfile po sendzie", size
         self.request.recv(1024)
         with open(filepath, 'rb') as bin_file:
@@ -49,13 +47,13 @@ class Client:
         self.request.connect((host, port))
 
     def recievefile(self, filename):
-        self.request.sendall('sendfile')
+        self.request.send('sendfile')
         self.request.recv(1024)
-        self.request.sendall(filename)
+        self.request.send(filename)
         size = self.request.recv(1024)
         print size
         size = int(size)
-        self.request.sendall('size recieved')
+        self.request.send('size recieved')
         with open(os.path.join('files', filename), 'wb+') as bin_file:
             recv = 0
             while recv < size:
@@ -65,14 +63,10 @@ class Client:
         print(filename)
     
     def get_listfiles(self):
-        self.request.sendall('listdir')
+        self.request.send('listdir')
         list_len = int(self.request.recv(1024))
         self.request.sendall('size recieved')
-        files_list = []
-        for elem in xrange(list_len):
-            files_list.append(self.request.recv(1024))
-            self.request.sendall('ok')
-        self.request.recv(1024)
+        files_list = self.request.recv(1024).split('|')
         return files_list
 
     def getinfo(self):
