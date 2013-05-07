@@ -4,7 +4,6 @@ import SocketServer as socketserver
 class ConnectionHandler(socketserver.BaseRequestHandler):
 
     def handle(self):
-        Server.connections.append(self)
         action = self.request.recv(1024)
         if action == 'listdir':
             self.listfiles()
@@ -96,7 +95,7 @@ if __name__ == '__main__':
             for nr, elem in enumerate(clients):
                 print(nr, elem.getinfo())
             nr = int(raw_input("podaj nr klienta, by pobrac od niego plik: "))
-            clients[nr].get_listfiles()
+            print(clients[nr].get_listfiles())
             file_name = raw_input("Podaj dokladna nazwe pliku: ")
             clients[nr].recievefile(file_name)
 
