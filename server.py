@@ -53,7 +53,7 @@ class Client:
         size = self.request.recv(1024)
         size = int(size)
         self.request.sendall('size recieved')
-        with open(os.path.join(dirname, filename), 'wb+') as bin_file:
+        with open(os.path.join('files', filename), 'wb+') as bin_file:
             recv = 0
             while recv < size:
                 bin_string = self.request.recv(1024)
@@ -87,7 +87,7 @@ if __name__ == '__main__':
         choice = raw_input("Wylistuj [ls], pobierz plik [pp], dodaj clienta [dc]")
         if choice == 'dc':
             ip = raw_input('podaj ip: ')
-            port = raw_input('podaj port: ')
+            port = int(raw_input('podaj port: '))
             clients.append(Client(ip, port))
         if choice == 'ls':
             for nr, elem in enumerate(clients):
